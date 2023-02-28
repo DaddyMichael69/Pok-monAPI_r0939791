@@ -10,8 +10,6 @@ using System.Xml.Linq;
 
 namespace Pokémon.Model
 {
-
-    // Root myDeserializedClass = JsonConvert.DeserializeObject<Root>(myJsonResponse);
     public class Area
     {
         public string name { get; set; }
@@ -92,7 +90,7 @@ namespace Pokémon.Model
         public Pokedex pokedex { get; set; }
     }
 
-
+    
     public class PokemonSpecies
     {
         public int base_happiness { get; set; }
@@ -134,12 +132,6 @@ namespace Pokémon.Model
     {
         public bool is_default { get; set; }
         public Pokemon pokemon { get; set; }
-    }
-
-    public class Version
-    {
-        public string name { get; set; }
-        public string url { get; set; }
     }
 
 
