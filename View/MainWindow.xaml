@@ -1,0 +1,84 @@
+﻿<Window x:Class="Pokémon.View.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Pokémon.View" 
+        xmlns:converters="clr-namespace:Pokémon.ViewModel.Converters"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+
+    <Window.Resources>
+        <converters:StatObsColToString x:Key="StatObColToString" />
+        <converters:TypeObsColToString x:Key="TypeObColToString" />
+    </Window.Resources>
+
+    <Grid>
+        <TabControl x:Name="tbcTabs">
+            <TabItem x:Name="tiVangen" Header="Vangen">
+                <Grid x:Name="grdVangen" Background="#FFE5E5E5" ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="31*"/>
+                        <RowDefinition Height="27*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="104*"/>
+                        <ColumnDefinition Width="152*"/>
+                        <ColumnDefinition Width="141*"/>
+                    </Grid.ColumnDefinitions>
+                    <GroupBox x:Name="grpPokemon" Header="Pokémon" Margin="4,0,11,14" Grid.Column="1">
+                        <Canvas x:Name="cnvPokémon">
+                            <Image Source="{Binding Pokemon.sprites.front_default}" Width="277" Height="178" />
+                        </Canvas>
+                    </GroupBox>
+                    <GroupBox x:Name="grpStats" Header="{Binding Pokemon.id}" Margin="3,0,17,25" Grid.Column="2" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" Grid.RowSpan="2">
+                        <StackPanel x:Name="stpStats">
+                            <TextBlock x:Name="txtNameStatic" Text="Name:" FontWeight="Bold" />
+                            <TextBlock x:Name="txtName" Text="{Binding Pokemon.name}" />
+                            <TextBlock x:Name="txtTypeStatic" Text="Type:" FontWeight="Bold" />
+                            <TextBlock x:Name="txtType" Text="{Binding Pokemon.types, Converter={StaticResource TypeObColToString}}" />
+                            <TextBlock x:Name="txtHeightStatic" Text="Height:" FontWeight="Bold" />
+                            <TextBlock x:Name="txtHeight" Text="{Binding Pokemon.height}" />
+                            <TextBlock x:Name="txtWeightStatic" Text="Weight:" FontWeight="Bold" />
+                            <TextBlock x:Name="txtWeight" Text="{Binding Pokemon.weight}" />
+                            <TextBlock x:Name="txtStatsStatic" Text="Stats:" FontWeight="Bold" />
+                            <TextBlock x:Name="txtStats" Text="{Binding Pokemon.stats, Converter={StaticResource StatObColToString}}" />
+                        </StackPanel>
+                    </GroupBox>
+                    <TextBox x:Name="txtSearch" HorizontalAlignment="Center" Margin="0,34,0,0" TextWrapping="Wrap" Text="Search a pokémon..." VerticalAlignment="Top" Width="136" Height="18"/>
+                    <Button x:Name="btnSearch" Command="{Binding SearchCommand}" CommandParameter="{Binding Text, ElementName=txtSearch}" Content="Search" HorizontalAlignment="Left" Margin="134,65,0,0" VerticalAlignment="Top"  Height="20" Width="38"/>
+                    <Button x:Name="btnRandom" Command="{Binding RandomSearchCommand}" Content="Random" HorizontalAlignment="Left" Margin="36,65,0,0" VerticalAlignment="Top" />
+                    <GroupBox x:Name="grpPokeballs" Grid.Column="1" Header="Pokéballs" Grid.Row="1">
+                        <StackPanel x:Name="stpPokebuttons" Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Button x:Name="imgPokebutton" Command="{Binding CatchCommand}" CommandParameter="{Binding Pokemon}">
+                                <Image Height="76" Width="83" Source="{Binding PokeballSprite}" Stretch="UniformToFill" Cursor="Hand"/>
+                            </Button>
+                        </StackPanel>
+
+                    </GroupBox>
+                    <Label x:Name="lblTimer" Content="" HorizontalAlignment="Left" Margin="123,10,0,0" Grid.Row="1" VerticalAlignment="Top" Width="68"/>
+                </Grid>
+            </TabItem>
+            <TabItem x:Name="tiPokéDex" HorizontalAlignment="Center" Height="20" Header="PokéDex" VerticalAlignment="Top" Width="82" Margin="0,-1,0,0">
+                <Grid x:Name="grdPokéDex" Background="#FFE5E5E5">
+                    <DataGrid x:Name="dtgPokédex" ItemsSource="{Binding PokedexLoaded}" AutoGenerateColumns="False" Margin="0,0,512,105">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="id" Binding="{Binding id}" />
+                            <DataGridTextColumn Header="Name" Binding="{Binding name}" />
+                            <DataGridTemplateColumn Header="Image">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Image Source="{Binding sprites.front_default}" Width="100" Height="100" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <Button x:Name="btnNext" Command="{Binding BrowsePokedex}" CommandParameter="{Binding PokedexMain.Next}" Content="Next" HorizontalAlignment="Left" Margin="444,330,0,0" VerticalAlignment="Top" Height="34" Width="62"/>
+                    <Button x:Name="btnPrevious" Command="{Binding BrowsePokedex}" CommandParameter="{Binding PokedexMain.Previous}"  Content="Previous" HorizontalAlignment="Left" Margin="273,330,0,0" VerticalAlignment="Top" Height="34" Width="62"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+    </Grid>
+</Window>
