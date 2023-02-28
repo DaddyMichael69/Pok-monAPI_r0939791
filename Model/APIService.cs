@@ -18,7 +18,7 @@ namespace Pokémon.Model
         /*FIELD*/
         private HttpClient _httpClient;
         private Uri _baseUri;
-        private string _jsonFilePath;
+        private string _jsonPlayerDataFilePath;
         private bool _isValidatedAPICall;
 
 
@@ -26,13 +26,15 @@ namespace Pokémon.Model
         /*CONSTRUCTOR*/
         public APIService(Uri baseUri)
         {
-            _baseUri = baseUri;
+            //set up base adress
+            _baseUri = baseUri;                                                     
             _httpClient = new HttpClient();
             _httpClient.BaseAddress = _baseUri;             
             _httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
             
-            _jsonFilePath = AppDomain.CurrentDomain.BaseDirectory + @"file.json";
-            ValidateJson(_jsonFilePath);
+            //create json + set filepath
+            _jsonPlayerDataFilePath = AppDomain.CurrentDomain.BaseDirectory + @"PlayerData.json";   
+            ValidateJson(_jsonPlayerDataFilePath);
             
             _isValidatedAPICall = false;
         }
@@ -65,7 +67,29 @@ namespace Pokémon.Model
             }
         }
 
+        public string ReadFromJson() 
+        {
+            // Read the JSON file
+            string jsonReadFile = File.ReadAllText(_jsonPlayerDataFilePath);
 
+            return jsonReadFile;
+        }
+
+        // Write to jsonfile
+        public void WriteToJson(object obj) 
+        {
+            // Serialize to a JSON string
+            string jsonSerialized = JsonConvert.SerializeObject(obj, Formatting.Indented);
+
+            // Write the JSON string to the file
+            File.WriteAllText(_jsonPlayerDataFilePath, jsonSerialized);
+        }
+
+        public void ResetJson() 
+        {
+            // Write the JSON string to the file
+            File.WriteAllText(_jsonPlayerDataFilePath, string.Empty);
+        }
 
         //  API CALL MAKEN
         public HttpResponseMessage APICall(string strEndpoint, string strInputSearchbar)
@@ -81,18 +105,14 @@ namespace Pokémon.Model
             if (_isValidatedAPICall)
             {
                 return response;
-
             }
             else
             {
                 return null;        // eventuele foutmelding meegeven
             }
 
-
         }
-                       
-
-
+                    
         //  API RESPONSE VALIDATION (+ status error msg)
         private bool ValidateAPIResponse(HttpResponseMessage response) 
         {
@@ -111,9 +131,7 @@ namespace Pokémon.Model
             }
         }
 
-
-
-        //  convert naar pokemon object
+        //  API CONVERTER
         public T ConvertAPIResponse<T>(HttpResponseMessage response) where T : class
         {
             // respons uit Async als string omzetten
@@ -127,8 +145,5 @@ namespace Pokémon.Model
 
             return Object;
         }
-
-
-
     }
 }

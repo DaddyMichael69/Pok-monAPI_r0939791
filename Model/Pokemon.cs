@@ -62,8 +62,6 @@ namespace Pokémon.Model
         public int weight { get; set; }
     }
 
-
-
     public class PokeType
     {
         public int slot { get; set; }

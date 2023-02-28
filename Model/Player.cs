@@ -16,9 +16,8 @@ namespace Pokémon.Model
     {
         /*PROPERTIES*/
         public ObservableCollection<Pokemon> PlayerPokemonList { get; set; }
-        public int PokeBalls { get; set; }
-        public ItemInfo Pokeballs2 { get; set; }
-        public DispatcherTimer ResetPokeballTimer { get; set; }     // to do set timer on pokeballs
+        public ObservableCollection<ItemInfo> PokeballList { get; set; }
+        public ItemInfo Pokeball { get; set; }
 
 
 
@@ -26,8 +25,8 @@ namespace Pokémon.Model
         public Player()
         {
             PlayerPokemonList = new ObservableCollection<Pokemon>();
-            Pokeballs2 = new ItemInfo();
-            PokeBalls = 30000;
+            PokeballList= new ObservableCollection<ItemInfo>();
+            Pokeball = new ItemInfo();
         }
 
         /*METHODS*/
@@ -35,14 +34,13 @@ namespace Pokémon.Model
         public bool CheckPokeballCount()
         {
 
-            if (PokeBalls > 0)
+            if (PokeballList.Count > 0)
             {
 
                 return true;
             }
             else
             {
-                ResetPokeballsTimer();
                 return false;
             }
         }
@@ -50,19 +48,23 @@ namespace Pokémon.Model
         //deplete pokéballs
         public void DepletePokeBalls() 
         {
-            PokeBalls--;
+            PokeballList.RemoveAt(0);
         }
 
+        // catch pokemon
         public void CatchPokemon(Pokemon pokemon) 
         {
             PlayerPokemonList.Add(pokemon);
         }
 
-        public void ResetPokeballsTimer() 
+        // add 3 balls to pokeballList
+        public void RefillPokeballList(ItemInfo pokeballs) 
         {
-            
+            for (int i = 0; i < 300; i++)
+            {
+                PokeballList.Add(pokeballs);
+            }
         }
-
 
     }
 }

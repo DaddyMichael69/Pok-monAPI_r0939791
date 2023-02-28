@@ -31,7 +31,7 @@
                             <Image Source="{Binding Pokemon.sprites.front_default}" Width="277" Height="178" />
                         </Canvas>
                     </GroupBox>
-                    <GroupBox x:Name="grpStats" Header="{Binding Pokemon.id}" Margin="3,0,17,25" Grid.Column="2" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" Grid.RowSpan="2">
+                    <GroupBox x:Name="grpStats" Header="{Binding Pokemon.id}" Margin="3,0,17,10" Grid.Column="2" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" Grid.RowSpan="2">
                         <StackPanel x:Name="stpStats">
                             <TextBlock x:Name="txtNameStatic" Text="Name:" FontWeight="Bold" />
                             <TextBlock x:Name="txtName" Text="{Binding Pokemon.name}" />
@@ -45,7 +45,7 @@
                             <TextBlock x:Name="txtStats" Text="{Binding Pokemon.stats, Converter={StaticResource StatObColToString}}" />
                         </StackPanel>
                     </GroupBox>
-                    <GroupBox x:Name="grpPokeballs" Grid.Column="1" Header="Pokéballs" Grid.Row="1">
+                    <GroupBox x:Name="grpPokeballs" Grid.Column="1" Header="Pokéballs" Margin="0,217,0,10" Grid.RowSpan="2">
                         <StackPanel x:Name="stpPokebuttons" Orientation="Horizontal" HorizontalAlignment="Center">
                             <Button x:Name="imgPokebutton" Command="{Binding CatchCommand}" CommandParameter="{Binding Pokemon}">
                                 <Image Height="76" Width="83" Source="{Binding PokeballSprite}" Stretch="UniformToFill" Cursor="Hand"/>
@@ -54,32 +54,58 @@
 
                     </GroupBox>
                     <Label x:Name="lblTimer" Content="" HorizontalAlignment="Left" Margin="123,10,0,0" Grid.Row="1" VerticalAlignment="Top" Width="68"/>
-                    <GroupBox Header="Browse">
+                    <GroupBox Header="Browse" Margin="10,0,0,0">
                         <Grid>
                             <TextBox x:Name="txtSearch" HorizontalAlignment="Left" Margin="26,66,0,0" TextWrapping="Wrap" Text="Search a pokémon..." VerticalAlignment="Top" Width="136" Height="18"/>
                             <Button x:Name="btnSearch" Command="{Binding SearchCommand}" CommandParameter="{Binding Text, ElementName=txtSearch}" Content="Search" HorizontalAlignment="Left" Margin="124,97,0,0" VerticalAlignment="Top"  Height="20" Width="38"/>
                             <Button x:Name="btnRandom" Command="{Binding RandomSearchCommand}" Content="Random" HorizontalAlignment="Left" Margin="26,97,0,0" VerticalAlignment="Top" />
                         </Grid>
                     </GroupBox>
+                    <GroupBox Header="Player" Margin="10,217,0,10" Grid.RowSpan="2">
+                        <Grid>
+                            <TextBox x:Name="txtTestTimer" Text="{Binding TimeLeft}"  HorizontalAlignment="Left" Margin="56,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" IsEnabled="False"/>
+                            <Label Content="Timer" HorizontalAlignment="Left" Margin="10,6,0,0" VerticalAlignment="Top"/>
+                        </Grid>
+                    </GroupBox>
                 </Grid>
             </TabItem>
             <TabItem x:Name="tiPokéDex" HorizontalAlignment="Center" Height="20" Header="PokéDex" VerticalAlignment="Top" Width="82" Margin="0,-1,0,0">
                 <Grid x:Name="grdPokéDex" Background="#FFE5E5E5">
-                    <DataGrid x:Name="dtgPokédex" ItemsSource="{Binding PokedexLoaded}" AutoGenerateColumns="False" Margin="0,0,512,105">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="id" Binding="{Binding id}" />
-                            <DataGridTextColumn Header="Name" Binding="{Binding name}" />
-                            <DataGridTemplateColumn Header="Image">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <Image Source="{Binding sprites.front_default}" Width="100" Height="100" />
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                    <Button x:Name="btnNext" Command="{Binding BrowsePokedex}" CommandParameter="{Binding PokedexMain.Next}" Content="Next" HorizontalAlignment="Left" Margin="444,330,0,0" VerticalAlignment="Top" Height="34" Width="62"/>
-                    <Button x:Name="btnPrevious" Command="{Binding BrowsePokedex}" CommandParameter="{Binding PokedexMain.Previous}"  Content="Previous" HorizontalAlignment="Left" Margin="273,330,0,0" VerticalAlignment="Top" Height="34" Width="62"/>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <GroupBox Grid.Column="1" Header="Player Pokemonlist">
+                        <Grid>
+                            <ListView x:Name="lstPlayerPokedex" ItemsSource="{Binding PlayerPokemonList}" Margin="44,14,43,68">
+                                <ListView.View>
+                                    <GridView>
+                                        <GridViewColumn DisplayMemberBinding="{Binding name}"/>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                            <Button x:Name="btnClearSaveData" Command="{Binding ClearSaveDataCommand}" Content="Clear savedata" HorizontalAlignment="Center" Margin="0,344,0,0" VerticalAlignment="Top" Width="298"/>
+                        </Grid>
+                    </GroupBox>
+                    <GroupBox Header="GroupBox">
+                        <Grid>
+                            <DataGrid x:Name="dtgInGamePokédex" ItemsSource="{Binding PokedexLoaded}" AutoGenerateColumns="False" Margin="45,18,58,64">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="id" Binding="{Binding id}" />
+                                    <DataGridTextColumn Header="Name" Binding="{Binding name}" />
+                                    <DataGridTemplateColumn Header="Image">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Image Source="{Binding sprites.front_default}" Width="100" Height="100" />
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <Button x:Name="btnNext" Command="{Binding BrowsePokedex}" CommandParameter="{Binding PokedexMain.Next}" Content="Next" HorizontalAlignment="Left" Margin="265,331,0,0" VerticalAlignment="Top" Height="34" Width="62"/>
+                            <Button x:Name="btnPrevious" Command="{Binding BrowsePokedex}" CommandParameter="{Binding PokedexMain.Previous}"  Content="Previous" HorizontalAlignment="Left" Margin="45,331,0,0" VerticalAlignment="Top" Height="34" Width="62"/>
+                        </Grid>
+                    </GroupBox>
                 </Grid>
             </TabItem>
         </TabControl>

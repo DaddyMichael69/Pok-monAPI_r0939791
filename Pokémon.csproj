@@ -72,7 +72,6 @@
     <Compile Include="Model\APIService.cs" />
     <Compile Include="Model\Item.cs" />
     <Compile Include="Model\Player.cs" />
-    <Compile Include="Model\AllAPI.cs" />
     <Compile Include="Model\Pokemon.cs" />
     <Compile Include="ViewModel\Converters\StatObsColToString.cs" />
     <Compile Include="ViewModel\Converters\TypeObsColToString.cs" />

@@ -21,11 +21,15 @@ using static Pokémon.Model.ItemData;
 using System.Windows.Media;
 using System.Threading;
 using System.Windows.Threading;
+using System.Timers;
 
 ////
 /// TO DO:      -- foutafhandeling
-///             -- pokedex fix --> pokemon species ipv regular pokemon
-///             -- try to show 3 pokeball objects in the stackpane
+///             -- pokedex --> show how many times a pokemon 's been caught
+///             --         --> json file saving player data
+///             -- Show amount of pokeballs
+///             -- timer   --> @ 5 min 
+///                        --> start after throw 3
 
 
 namespace Pokémon.ViewModel
@@ -40,18 +44,24 @@ namespace Pokémon.ViewModel
         private Uri _baseUri;                               // API
         private HttpResponseMessage _response;
         private APIService _apiService;
+
         private Pokemon _pokemon;                           // objects
         private PokemonSpecies _pokemonSpecies;
         private Pokedex _pokedex;
         private Player _player;
-        private DispatcherTimer _resetPokeballs;
+        private DispatcherTimer _PokeballTimer;
+        private TimeSpan _timeLeft;
+
+
         private bool _hasPokeballs;
+        private bool _isActiveTimer;
         private bool _hasCaughtPokemon;
 
         private ICommand _searchCommand;                    // commands
         private ICommand _randomSearchCommand;
         private ICommand _browsePokedex;
         private ICommand _catchCommand;
+        private ICommand _clearSaveDataCommand;
 
 
 
@@ -60,16 +70,20 @@ namespace Pokémon.ViewModel
         {
             _baseUri = parBaseUri;
             _apiService = new APIService(_baseUri);
+
             _pokemon = new Pokemon();
+            _pokemonSpecies = new PokemonSpecies();
             _pokedex = new Pokedex();
             LoadPokemonFromAPI("https://pokeapi.co/api/v2/pokemon/");
             _player = new Player();
             LoadPokeballs();
+            LoadPlayerPokemonList();
 
             _searchCommand = new RelayCommand(new Action<object>(SearchPokemon));
             _randomSearchCommand = new RelayCommand(new Action<object>(RandomSearchPokemon));
             _browsePokedex = new RelayCommand(new Action<object>(NextPreviousPokedex));
             _catchCommand = new RelayCommand(new Action<object>(CatchPokemonCommand));
+            _clearSaveDataCommand = new RelayCommand(new Action<object>(ErasePlayerPokemonList));
 
         }
 
@@ -82,14 +96,18 @@ namespace Pokémon.ViewModel
                 OnPropertyChanged("Pokemon");
             }
         }
+        public PokemonSpecies PokemonSpecies 
+        { 
+            get => _pokemonSpecies; 
+            set => _pokemonSpecies = value; 
+        }
         public Pokedex PokedexMain 
         { 
             get => _pokedex;
             set 
             {
                 _pokedex = value;
-                OnPropertyChanged("PokedexMain");
-                    
+                OnPropertyChanged("PokedexMain");                    
             }
         }
         public ObservableCollection<Pokemon> PokedexLoaded       
@@ -101,7 +119,7 @@ namespace Pokémon.ViewModel
                 OnPropertyChanged("PokedexLoaded");
             }
         }
-        public Player Player                            // TO DO Give pokeballs to the player + make player able to catch using pokeballs 
+        public Player Player                            
         {
             get => _player;
             set
@@ -110,25 +128,60 @@ namespace Pokémon.ViewModel
                 OnPropertyChanged("Player");
             }
         }
-        public ItemInfo PlayerPokeballs
+        public ObservableCollection<Pokemon> PlayerPokemonList
         {
-            get => _player.Pokeballs2;
+            get => _player.PlayerPokemonList;
             set
             {
-                _player.Pokeballs2 = value;
+                _player.PlayerPokemonList = value;
+                OnPropertyChanged("PlayerPokemonList");
+            }
+        }
+        public ObservableCollection<ItemInfo> PlayerPokeballList
+        {
+            get => _player.PokeballList;
+            set
+            {
+                _player.PokeballList = value;
+                OnPropertyChanged("PlayerPokeballList");
+            }
+        }
+        public ItemInfo PlayerPokeball 
+        {
+            get => _player.Pokeball;
+            set
+            {
+                _player.Pokeball = value;
                 OnPropertyChanged("PlayerPokeballs");
             }
         }
         public ImageSource PokeballSprite
         {
-            get => _player.Pokeballs2.sprites.@default;
+            get => _player.Pokeball.sprites.@default;
             set
             {
-                _player.Pokeballs2.sprites.@default = value;
+                _player.Pokeball.sprites.@default = value;
                 OnPropertyChanged("PokeballSprite");
             }
         }
-
+        public DispatcherTimer PokeballTimer
+        {
+            get => _PokeballTimer;
+            set
+            {
+                _PokeballTimer = value;
+                OnPropertyChanged("Pokeballtimer");
+            }
+        }     
+        public TimeSpan TimeLeft 
+        { 
+            get => _timeLeft;
+            set
+            {
+                _timeLeft = value;
+                OnPropertyChanged("TimeLeft");
+            }
+        }
         public ICommand SearchCommand                   
         {
             get => _searchCommand;
@@ -149,22 +202,53 @@ namespace Pokémon.ViewModel
             get => _catchCommand; 
             set => _catchCommand = value; 
         }
-
-
-        /*METHODS*/
-        // event handler method:
-        public void OnPropertyChanged(string propName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
+        public ICommand ClearSaveDataCommand 
+        { 
+            get => _clearSaveDataCommand; 
+            set => _clearSaveDataCommand = value; 
         }
 
-        /*METHODS*/
+
+        /*EVENTMETHODS*/
+        // event handler method:
+        public void OnPropertyChanged(string propName)
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
+            }
+        private void OnTimerTick(object sender, EventArgs e)
+        {
+            TimeLeft = TimeLeft.Subtract(TimeSpan.FromSeconds(1));
+            if (TimeLeft <= TimeSpan.Zero)
+            {
+                _PokeballTimer.Stop();
+                _isActiveTimer = false;
+                LoadPokeballs();
+            }
+        }
+
+
+
+        /*WORKMETHODS*/
         #region searchtab
         // Search pokemon @ API
         public void SearchPokemon(object commandParameter)
         {
+            // extract pokemon
             _response = _apiService.APICall("pokemon", commandParameter.ToString());
-            Pokemon = _apiService.ConvertAPIResponse<Pokemon>(_response);
+            Pokemon pokemon = _apiService.ConvertAPIResponse<Pokemon>(_response);
+            
+            // extract pokemon species info
+            _response = _apiService.APICall(pokemon.species.url, ""); 
+            PokemonSpecies pokemonSpecies = _apiService.ConvertAPIResponse<PokemonSpecies>(_response);
+
+            // filter out generation I species
+            if (pokemonSpecies.generation.name == "generation-i")
+            {
+                PokemonSpecies = pokemonSpecies;
+                Pokemon = pokemon;
+            }
+            else { MessageBox.Show("Generation I only (1-151)"); }   //error log ->
+
         }
 
         // Search RANDOM Pokemon @ API
@@ -198,15 +282,23 @@ namespace Pokémon.ViewModel
                 //add pokemon if player wins toss
                 if (_hasCaughtPokemon)
                 {
-                    Player.CatchPokemon(pokemon);
-                    MessageBox.Show("Caught " + pokemon.name);
-                    Pokemon = null;
+                    Player.CatchPokemon(pokemon);                   // add pokemon to player pokemon list
+                    MessageBox.Show("Caught " + pokemon.name);      // msg 2 user
+                    SavePlayerPokemonList();
+
+                    Pokemon = null;                                 // reset gui
                 }
 
                 else { 
-                    MessageBox.Show("you have " + Player.PokeBalls.ToString() + " left");
+                    MessageBox.Show("you have " + Player.PokeballList.Count + " left");
                 }
 
+            }
+
+            else
+            {
+                SetPokeballTimer();
+                MessageBox.Show("you have " + Player.PokeballList.Count + " left");
             }
 
         }
@@ -235,13 +327,34 @@ namespace Pokémon.ViewModel
         }
 
         // load pokeballs   // unfinished
-        public void LoadPokeballs()                 // try to show 3 pokeball objects in the stackpanel
+        public void LoadPokeballs()              
         {
             _response = _apiService.APICall("item/4", "");            // pokemons oproepen
-            PlayerPokeballs = _apiService.ConvertAPIResponse<ItemData.ItemInfo>(_response);            // deserialize pokemon list
+            PlayerPokeball = _apiService.ConvertAPIResponse<ItemData.ItemInfo>(_response);     // deserialize pokemon list
+            Player.RefillPokeballList(PlayerPokeball);             // refill pokeballs
+        }
 
-        } 
+        // set pokeballs timer                          // TO DO --> zet op 5 min
+        public void SetPokeballTimer()
+        {
+            if (!_isActiveTimer)
+            {
+                _PokeballTimer = new DispatcherTimer();
+
+                _PokeballTimer.Interval = TimeSpan.FromSeconds(1);
+                _PokeballTimer.Tick += OnTimerTick;     // activate event method
+
+                _timeLeft = TimeSpan.FromSeconds(60);
+
+                _PokeballTimer.Start();                // start timer
+
+                _isActiveTimer = true;                // set timer bool active
+            }
+        }
+
         #endregion
+
+
 
         #region pokedex
         // Load pokemon list @ POKEDEX
@@ -282,6 +395,26 @@ namespace Pokémon.ViewModel
                 //property change
                 OnPropertyChanged("PokedexLoaded");
             }
+        }
+        #endregion
+
+
+        #region Player
+        // Load player data
+        public void LoadPlayerPokemonList() 
+        {
+            string jsonPlayerData = _apiService.ReadFromJson();
+            _player.PlayerPokemonList = JsonConvert.DeserializeObject<ObservableCollection<Pokemon>>(jsonPlayerData);
+        }
+        // Save player data
+        public void SavePlayerPokemonList() 
+        {
+            _apiService.WriteToJson(_player.PlayerPokemonList);
+        }
+        // Erase player data
+        public void ErasePlayerPokemonList(object CommandParameter) 
+        {
+            _apiService.ResetJson();
         }
         #endregion
     }
