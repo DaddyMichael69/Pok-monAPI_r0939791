@@ -18,7 +18,7 @@ namespace Pokémon.Model
         public ObservableCollection<Pokemon> PlayerPokemonList { get; set; }
         public int PokeBalls { get; set; }
         public ItemInfo Pokeballs2 { get; set; }
-        public DispatcherTimer ResetPokeballTimer { get; set; }
+        public DispatcherTimer ResetPokeballTimer { get; set; }     // to do set timer on pokeballs
 
 
 

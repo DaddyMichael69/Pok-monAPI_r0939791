@@ -22,6 +22,12 @@ using System.Windows.Media;
 using System.Threading;
 using System.Windows.Threading;
 
+////
+/// TO DO:      -- foutafhandeling
+///             -- pokedex fix --> pokemon species ipv regular pokemon
+///             -- try to show 3 pokeball objects in the stackpane
+
+
 namespace Pokémon.ViewModel
 {
     public class vmMainWindow : INotifyPropertyChanged
@@ -229,7 +235,7 @@ namespace Pokémon.ViewModel
         }
 
         // load pokeballs   // unfinished
-        public void LoadPokeballs() 
+        public void LoadPokeballs()                 // try to show 3 pokeball objects in the stackpanel
         {
             _response = _apiService.APICall("item/4", "");            // pokemons oproepen
             PlayerPokeballs = _apiService.ConvertAPIResponse<ItemData.ItemInfo>(_response);            // deserialize pokemon list
@@ -275,7 +281,6 @@ namespace Pokémon.ViewModel
 
                 //property change
                 OnPropertyChanged("PokedexLoaded");
-
             }
         }
         #endregion
