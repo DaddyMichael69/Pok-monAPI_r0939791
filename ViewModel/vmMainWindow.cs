@@ -408,7 +408,7 @@ namespace Pokémon.ViewModel
             AddPokemonToPokedex(PokedexMain);  // add pokemon to pokedexLoaded list (pokedex class)
         }
 
-        // extract pokemon from the pokedex(data)
+        // extract every pokemon from the pokedex(data)
         public async Task AddPokemonToPokedex(Pokedex pokedex) 
         {
             // loop through pokedata and use names to summon pokemon
