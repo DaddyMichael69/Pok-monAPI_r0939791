@@ -22,6 +22,8 @@ using System.Windows.Media;
 using System.Threading;
 using System.Windows.Threading;
 using System.Timers;
+using Newtonsoft.Json.Linq;
+using Pokémon.ViewModel.Services;
 
 ////
 /// TO DO:      -- foutafhandeling
@@ -44,15 +46,18 @@ namespace Pokémon.ViewModel
         private Uri _baseUri;                               // API
         private HttpResponseMessage _response;
         private APIService _apiService;
+        private ErrorLogService _errorLogService;
+        private List<ErrorLogService> _errorLogServiceList;
 
         private Pokemon _pokemon;                           // objects
+        private Pokemon _selectedPokemon;
         private PokemonSpecies _pokemonSpecies;
         private Pokedex _pokedex;
         private Player _player;
         private DispatcherTimer _PokeballTimer;
         private TimeSpan _timeLeft;
 
-
+                                                            // bools
         private bool _hasPokeballs;
         private bool _isActiveTimer;
         private bool _hasCaughtPokemon;
@@ -64,12 +69,14 @@ namespace Pokémon.ViewModel
         private ICommand _clearSaveDataCommand;
 
 
+        
 
         /*CONSTRUCTOR*/
         public vmMainWindow(Uri parBaseUri)
         {
             _baseUri = parBaseUri;
             _apiService = new APIService(_baseUri);
+            _errorLogServiceList = new List<ErrorLogService>();
 
             _pokemon = new Pokemon();
             _pokemonSpecies = new PokemonSpecies();
@@ -94,6 +101,26 @@ namespace Pokémon.ViewModel
             get => _pokemon;
             set { _pokemon = value;
                 OnPropertyChanged("Pokemon");
+            }
+        }
+        public Pokemon SelectedPokemon 
+        {
+            get { return _selectedPokemon; }
+            set {
+                if (_selectedPokemon != value)
+                {
+                    _selectedPokemon = value;
+                    OnPropertyChanged("SelectedPokemon");
+                    OnPropertyChanged("PokemonCaughtCount");
+                }
+            }
+        }
+        public int PokemonCaughtCount
+        {
+            get => _selectedPokemon.CaughtCount;
+            set {
+                _selectedPokemon.CaughtCount = value;
+                OnPropertyChanged("PokemonCaughtCount");
             }
         }
         public PokemonSpecies PokemonSpecies 
@@ -212,9 +239,10 @@ namespace Pokémon.ViewModel
         /*EVENTMETHODS*/
         // event handler method:
         public void OnPropertyChanged(string propName)
-            {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
-            }
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
+        }
+
         private void OnTimerTick(object sender, EventArgs e)
         {
             TimeLeft = TimeLeft.Subtract(TimeSpan.FromSeconds(1));
@@ -233,21 +261,39 @@ namespace Pokémon.ViewModel
         // Search pokemon @ API
         public void SearchPokemon(object commandParameter)
         {
-            // extract pokemon
-            _response = _apiService.APICall("pokemon", commandParameter.ToString());
-            Pokemon pokemon = _apiService.ConvertAPIResponse<Pokemon>(_response);
-            
-            // extract pokemon species info
-            _response = _apiService.APICall(pokemon.species.url, ""); 
-            PokemonSpecies pokemonSpecies = _apiService.ConvertAPIResponse<PokemonSpecies>(_response);
-
-            // filter out generation I species
-            if (pokemonSpecies.generation.name == "generation-i")
+            try
             {
-                PokemonSpecies = pokemonSpecies;
-                Pokemon = pokemon;
+                // extract pokemon
+                _response = _apiService.APICall("pokemon", commandParameter.ToString());
+                Pokemon pokemon = _apiService.ConvertAPIResponse<Pokemon>(_response);
+
+                // extract pokemon species info
+                _response = _apiService.APICall(pokemon.species.url, "");
+                PokemonSpecies pokemonSpecies = _apiService.ConvertAPIResponse<PokemonSpecies>(_response);
+
+                // filter out generation I species
+                if (pokemonSpecies.generation.name == "generation-i")
+                {
+                    PokemonSpecies = pokemonSpecies;
+                    Pokemon = pokemon;
+                }
+                else { MessageBox.Show("Generation I only (1-151)"); }
             }
-            else { MessageBox.Show("Generation I only (1-151)"); }   //error log ->
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occurred while searching for the pokémon...");    // msg 2 user
+
+                //make object from error
+                ErrorLogService error = new ErrorLogService()
+                {
+                    TimeStamp = DateTime.Now,
+                    ErrorMsg = ex.Message,
+                    Stacktrace = ex.StackTrace
+                };
+
+                _errorLogServiceList.Add(error);    // add to error list
+                _apiService.AddToJson(_errorLogServiceList, _apiService.JsonErrorLog);  // add to json file
+            }
 
         }
 
@@ -285,14 +331,12 @@ namespace Pokémon.ViewModel
                     Player.CatchPokemon(pokemon);                   // add pokemon to player pokemon list
                     MessageBox.Show("Caught " + pokemon.name);      // msg 2 user
                     SavePlayerPokemonList();
-
                     Pokemon = null;                                 // reset gui
                 }
 
                 else { 
                     MessageBox.Show("you have " + Player.PokeballList.Count + " left");
                 }
-
             }
 
             else
@@ -313,15 +357,14 @@ namespace Pokémon.ViewModel
             Random rndCaptureCounterRate = new Random();
             int counterCaptureRate = rndCaptureCounterRate.Next(1, 255);
 
+            // boolean return
             if (counterCaptureRate < iCaptureRate)
             {
                 return true;
             }
-
             else
             {
                 return false;
-
             }
 
         }
@@ -409,7 +452,7 @@ namespace Pokémon.ViewModel
         // Save player data
         public void SavePlayerPokemonList() 
         {
-            _apiService.WriteToJson(_player.PlayerPokemonList);
+            _apiService.WriteToJson(_player.PlayerPokemonList, _apiService.JsonPlayerDataFilePath);
         }
         // Erase player data
         public void ErasePlayerPokemonList(object CommandParameter) 

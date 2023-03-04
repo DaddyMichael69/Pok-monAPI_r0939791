@@ -77,14 +77,19 @@
                     </Grid.ColumnDefinitions>
                     <GroupBox Grid.Column="1" Header="Player Pokemonlist">
                         <Grid>
-                            <ListView x:Name="lstPlayerPokedex" ItemsSource="{Binding PlayerPokemonList}" Margin="44,14,43,68">
+                            <ListView x:Name="lstPlayerPokedex" ItemsSource="{Binding PlayerPokemonList}"
+                                      SelectedItem="{Binding SelectedPokemon}" Margin="44,14,43,112">
                                 <ListView.View>
                                     <GridView>
+                                        <GridViewColumn DisplayMemberBinding="{Binding id}"/>
                                         <GridViewColumn DisplayMemberBinding="{Binding name}"/>
+                                        <GridViewColumn DisplayMemberBinding="{Binding CaughtCount}"/>
                                     </GridView>
                                 </ListView.View>
                             </ListView>
                             <Button x:Name="btnClearSaveData" Command="{Binding ClearSaveDataCommand}" Content="Clear savedata" HorizontalAlignment="Center" Margin="0,344,0,0" VerticalAlignment="Top" Width="298"/>
+                            <Label x:Name="lblCaughtInfo" Content="#Caught:" HorizontalAlignment="Left" Margin="121,292,0,0" VerticalAlignment="Top"/>
+                            <Label x:Name="lblCaughtCount" Content="{Binding SelectedPokemon.CaughtCount}" HorizontalAlignment="Left" Margin="207,292,0,0" VerticalAlignment="Top"/>
                         </Grid>
                     </GroupBox>
                     <GroupBox Header="GroupBox">

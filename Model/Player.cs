@@ -33,10 +33,8 @@ namespace Pokémon.Model
         // check if the player has any pokeballs
         public bool CheckPokeballCount()
         {
-
             if (PokeballList.Count > 0)
             {
-
                 return true;
             }
             else
@@ -54,7 +52,8 @@ namespace Pokémon.Model
         // catch pokemon
         public void CatchPokemon(Pokemon pokemon) 
         {
-            PlayerPokemonList.Add(pokemon);
+            pokemon.increaseCaughtCount();      //increase caught counter
+            PlayerPokemonList.Add(pokemon);     // add pokemon to player pokelist
         }
 
         // add 3 balls to pokeballList

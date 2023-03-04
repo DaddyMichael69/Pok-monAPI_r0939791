@@ -10,6 +10,8 @@ using System.Windows;
 using Newtonsoft.Json.Linq;
 using System.IO;
 using System.Diagnostics;
+using System.Net;
+using System.Windows.Markup;
 
 namespace Pokémon.Model
 {
@@ -19,6 +21,7 @@ namespace Pokémon.Model
         private HttpClient _httpClient;
         private Uri _baseUri;
         private string _jsonPlayerDataFilePath;
+        private string _jsonErrorLogFilePath;
         private bool _isValidatedAPICall;
 
 
@@ -33,12 +36,18 @@ namespace Pokémon.Model
             _httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
             
             //create json + set filepath
-            _jsonPlayerDataFilePath = AppDomain.CurrentDomain.BaseDirectory + @"PlayerData.json";   
+            _jsonPlayerDataFilePath = AppDomain.CurrentDomain.BaseDirectory + @"PlayerData.json";
             ValidateJson(_jsonPlayerDataFilePath);
-            
+            _jsonErrorLogFilePath = AppDomain.CurrentDomain.BaseDirectory + @"ErrorLog.json";
+            ValidateJson(_jsonErrorLogFilePath);
+
             _isValidatedAPICall = false;
         }
 
+
+        /*PROPERTIES*/
+        public string JsonErrorLog { get => _jsonErrorLogFilePath; set => _jsonErrorLogFilePath = value; }
+        public string JsonPlayerDataFilePath { get => _jsonPlayerDataFilePath; set => _jsonPlayerDataFilePath = value; }
 
 
 
@@ -76,13 +85,22 @@ namespace Pokémon.Model
         }
 
         // Write to jsonfile
-        public void WriteToJson(object obj) 
+        public void WriteToJson(object obj, string jsonPath) 
         {
             // Serialize to a JSON string
             string jsonSerialized = JsonConvert.SerializeObject(obj, Formatting.Indented);
 
             // Write the JSON string to the file
-            File.WriteAllText(_jsonPlayerDataFilePath, jsonSerialized);
+            File.WriteAllText(jsonPath, jsonSerialized);
+        }
+
+        public void AddToJson(object obj, string jsonPath) 
+        {
+            // Serialize to a JSON string
+            string jsonSerialized = JsonConvert.SerializeObject(obj, Formatting.Indented);
+
+            // Write the JSON string to the file
+            File.AppendAllText(jsonPath, jsonSerialized + Environment.NewLine);
         }
 
         public void ResetJson() 
@@ -134,16 +152,24 @@ namespace Pokémon.Model
         //  API CONVERTER
         public T ConvertAPIResponse<T>(HttpResponseMessage response) where T : class
         {
-            // respons uit Async als string omzetten
-            var jsonString = response.Content.ReadAsStringAsync().Result;
+            if (response != null)
+            {
+                // respons uit Async als string omzetten
+                var jsonString = response.Content.ReadAsStringAsync().Result;
 
-            // deserialized T (omzetten naar .net object/type)
-            var Object = JsonConvert.DeserializeObject<T>(jsonString);
+                // deserialized T (omzetten naar .net object/type)
+                var Object = JsonConvert.DeserializeObject<T>(jsonString);
 
-            // write to console
-            Debug.WriteLine(Object);
+                // write to console
+                Debug.WriteLine(Object);
 
-            return Object;
+                return Object;
+            }
+
+            else 
+            { 
+                return null; 
+            }
         }
     }
 }
