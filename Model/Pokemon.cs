@@ -13,12 +13,12 @@ namespace Pokémon.Model
     // Pokemon ROOT endpoint
     public class Pokedex
     {
+
         /*CONSTRUCTOR*/
         public Pokedex()
         {
             PokedexLoaded = new ObservableCollection<Pokemon>();
         }
-
 
         /*PROPS*/
         public int Count { get; set; }
@@ -41,7 +41,10 @@ namespace Pokémon.Model
     // inside the Pokedexresults-url
     public class Pokemon
     {
+        private int _caughtCount = 0;
+
         /*PROPERTIES*/
+        public int CaughtCount { get => _caughtCount; set => _caughtCount = value; }
         public List<Ability> abilities { get; set; }
         public int base_experience { get; set; }
         public List<Form> forms { get; set; }
@@ -60,7 +63,12 @@ namespace Pokémon.Model
         public ObservableCollection<Stat> stats { get; set; }
         public ObservableCollection<PokeType> types { get; set; }
         public int weight { get; set; }
+
+        /*METHODS*/
+        public void increaseCaughtCount() { CaughtCount++; }
     }
+
+
 
     public class PokeType
     {
@@ -70,7 +78,6 @@ namespace Pokémon.Model
 
     public class PokeType2 : PokeType
     {
-        /*PROPS*/
         public string name { get; set; }
         public string url { get; set; }
     }
@@ -78,7 +85,6 @@ namespace Pokémon.Model
 
     public class Sprites
     {
-        /*PROPERTIES*/
         public ImageSource back_default { get; set; }
         public ImageSource back_female { get; set; }
         public ImageSource back_shiny { get; set; }

@@ -69,12 +69,13 @@
     </Compile>
     <Compile Include="Model\PokemonSpecies.cs" />
     <Compile Include="ViewModel\Commands\RelayCommand.cs" />
-    <Compile Include="Model\APIService.cs" />
+    <Compile Include="ViewModel\Services\APIService.cs" />
     <Compile Include="Model\Item.cs" />
     <Compile Include="Model\Player.cs" />
     <Compile Include="Model\Pokemon.cs" />
     <Compile Include="ViewModel\Converters\StatObsColToString.cs" />
     <Compile Include="ViewModel\Converters\TypeObsColToString.cs" />
+    <Compile Include="ViewModel\Services\ErrorLogService.cs" />
     <Compile Include="ViewModel\vmMainWindow.cs" />
     <Compile Include="View\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
