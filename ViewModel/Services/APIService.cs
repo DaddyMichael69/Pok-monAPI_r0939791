@@ -55,7 +55,7 @@ namespace Pokémon.Model
         private void ValidateJson(string strPath)
         {
             // Create a new JArray object
-            JArray jsonArray = new JArray();
+            //JArray jsonArray = new JArray();
 
             // check if file exists
             if (File.Exists(strPath))
@@ -64,15 +64,15 @@ namespace Pokémon.Model
                 if (new FileInfo(strPath).Length == 0)
                 {
                     // Serialize the JArray to a JSON string
-                    string json = jsonArray.ToString();
-                    File.WriteAllText(strPath, json);
+                    //string json = jsonArray.ToString();
+                    File.WriteAllText(strPath, "");
                 }
             }
             else
             {
                 //create empty file
-                string json = jsonArray.ToString();
-                File.WriteAllText(strPath, json);
+                //string json = jsonArray.ToString();
+                File.WriteAllText(strPath, "");
             }
         }
 
