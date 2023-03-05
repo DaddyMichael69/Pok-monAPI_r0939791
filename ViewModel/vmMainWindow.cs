@@ -119,10 +119,12 @@ namespace Pokémon.ViewModel
         {
             get => _selectedPokemon.CaughtCount;
             set {
+                _player.CountPokemon(SelectedPokemon);
                 _selectedPokemon.CaughtCount = value;
                 OnPropertyChanged("PokemonCaughtCount");
             }
         }
+
         public PokemonSpecies PokemonSpecies 
         { 
             get => _pokemonSpecies; 
@@ -446,18 +448,22 @@ namespace Pokémon.ViewModel
         // Load player data
         public void LoadPlayerPokemonList() 
         {
-            string jsonPlayerData = _apiService.ReadFromJson();
+            string jsonPlayerData = _apiService.ReadFromJson(_apiService.JsonPlayerDataFilePath);
             _player.PlayerPokemonList = JsonConvert.DeserializeObject<ObservableCollection<Pokemon>>(jsonPlayerData);
         }
+
         // Save player data
         public void SavePlayerPokemonList() 
         {
             _apiService.WriteToJson(_player.PlayerPokemonList, _apiService.JsonPlayerDataFilePath);
         }
+
         // Erase player data
         public void ErasePlayerPokemonList(object CommandParameter) 
         {
-            _apiService.ResetJson();
+            _apiService.ResetJson();                    // reset json file
+            LoadPlayerPokemonList();                    // reset pokemon list
+            OnPropertyChanged("PlayerPokemonList");     
         }
         #endregion
     }

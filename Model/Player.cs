@@ -30,6 +30,29 @@ namespace Pokémon.Model
         }
 
         /*METHODS*/
+        // catch pokemon
+        public void CatchPokemon(Pokemon pokemon) 
+        {
+            pokemon.increaseCaughtCount();      //increase caught counter
+            PlayerPokemonList.Add(pokemon);     // add pokemon to player pokelist
+        }
+
+        // count pokemon
+        public void CountPokemon(Pokemon parPokemon)
+        {
+            foreach (Pokemon pokemon  in PlayerPokemonList)
+            {
+                if (pokemon == parPokemon)
+                {
+                    pokemon.CaughtCount++;
+                }
+                else
+                {
+                    pokemon.CaughtCount = 1;
+                }
+            }
+        }
+
         // check if the player has any pokeballs
         public bool CheckPokeballCount()
         {
@@ -49,12 +72,6 @@ namespace Pokémon.Model
             PokeballList.RemoveAt(0);
         }
 
-        // catch pokemon
-        public void CatchPokemon(Pokemon pokemon) 
-        {
-            pokemon.increaseCaughtCount();      //increase caught counter
-            PlayerPokemonList.Add(pokemon);     // add pokemon to player pokelist
-        }
 
         // add 3 balls to pokeballList
         public void RefillPokeballList(ItemInfo pokeballs) 
