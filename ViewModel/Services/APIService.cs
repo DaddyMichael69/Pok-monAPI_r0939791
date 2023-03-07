@@ -21,6 +21,7 @@ namespace Pokémon.Model
         private HttpClient _httpClient;
         private Uri _baseUri;
         private string _jsonPlayerDataFilePath;
+        private string _jsonPokeDataFilePath;
         private string _jsonErrorLogFilePath;
         private bool _isValidatedAPICall;
 
@@ -38,6 +39,8 @@ namespace Pokémon.Model
             //create json + set filepath
             _jsonPlayerDataFilePath = AppDomain.CurrentDomain.BaseDirectory + @"PlayerData.json";
             ValidateJson(_jsonPlayerDataFilePath);
+            _jsonPokeDataFilePath = AppDomain.CurrentDomain.BaseDirectory + @"PokeData.json";
+            ValidateJson(_jsonPokeDataFilePath);
             _jsonErrorLogFilePath = AppDomain.CurrentDomain.BaseDirectory + @"ErrorLog.json";
             ValidateJson(_jsonErrorLogFilePath);
 
@@ -46,8 +49,9 @@ namespace Pokémon.Model
 
 
         /*PROPERTIES*/
-        public string JsonErrorLog { get => _jsonErrorLogFilePath; set => _jsonErrorLogFilePath = value; }
         public string JsonPlayerDataFilePath { get => _jsonPlayerDataFilePath; set => _jsonPlayerDataFilePath = value; }
+        public string JsonPokeDataFilePath { get => _jsonPokeDataFilePath; set => _jsonPokeDataFilePath = value; }
+        public string JsonErrorLog { get => _jsonErrorLogFilePath; set => _jsonErrorLogFilePath = value; }
 
 
 
@@ -55,7 +59,7 @@ namespace Pokémon.Model
         private void ValidateJson(string strPath)
         {
             // Create a new JArray object
-            //JArray jsonArray = new JArray();
+            JArray jsonArray = new JArray();
 
             // check if file exists
             if (File.Exists(strPath))
@@ -64,24 +68,22 @@ namespace Pokémon.Model
                 if (new FileInfo(strPath).Length == 0)
                 {
                     // Serialize the JArray to a JSON string
-                    //string json = jsonArray.ToString();
-                    File.WriteAllText(strPath, "");
+                    string json = jsonArray.ToString();
+                    File.WriteAllText(strPath, json);
                 }
             }
             else
             {
                 //create empty file
-                //string json = jsonArray.ToString();
-                File.WriteAllText(strPath, "");
+                string json = jsonArray.ToString();
+                File.WriteAllText(strPath, json);
             }
         }
 
-        public string ReadFromJson() 
+        public string ReadFromJson(string jsonPath) 
         {
             // Read the JSON file
-            string jsonReadFile = File.ReadAllText(_jsonPlayerDataFilePath);
-
-            return jsonReadFile;
+            return File.ReadAllText(_jsonPlayerDataFilePath);
         }
 
         // Write to jsonfile
@@ -109,10 +111,9 @@ namespace Pokémon.Model
             File.WriteAllText(_jsonPlayerDataFilePath, string.Empty);
         }
 
-        //  API CALL MAKEN
+        //  API CALL
         public HttpResponseMessage APICall(string strEndpoint, string strInputSearchbar)
         {
-
             // Async (wait for server response)
             HttpResponseMessage response = _httpClient.GetAsync(strEndpoint + "/" + strInputSearchbar).Result;
 

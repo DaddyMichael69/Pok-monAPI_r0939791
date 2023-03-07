@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Pokémon.View" 
         xmlns:converters="clr-namespace:Pokémon.ViewModel.Converters"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Pokémon APP" Height="450" Width="800" Icon="/View/PokeBall.ico">
 
     <Window.Resources>
         <converters:StatObsColToString x:Key="StatObColToString" />
@@ -92,7 +92,7 @@
                             <Label x:Name="lblCaughtCount" Content="{Binding SelectedPokemon.CaughtCount}" HorizontalAlignment="Left" Margin="207,292,0,0" VerticalAlignment="Top"/>
                         </Grid>
                     </GroupBox>
-                    <GroupBox Header="GroupBox">
+                    <GroupBox Header="Pokédex">
                         <Grid>
                             <DataGrid x:Name="dtgInGamePokédex" ItemsSource="{Binding PokedexLoaded}" AutoGenerateColumns="False" Margin="45,18,58,64">
                                 <DataGrid.Columns>
