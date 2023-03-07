@@ -91,7 +91,7 @@ namespace Pokémon.Model
             public List<object> machines { get; set; }
             public string name { get; set; }
             public List<Name> names { get; set; }
-            public Sprites sprites { get; set; }
+            public Sprites? sprites { get; set; }
 
 
         }

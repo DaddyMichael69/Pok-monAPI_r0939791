@@ -76,10 +76,14 @@ namespace Pokémon.Model
         // add 3 balls to pokeballList
         public void RefillPokeballList(ItemInfo pokeballs) 
         {
-            for (int i = 0; i < 300; i++)
+            if (pokeballs != null)
             {
-                PokeballList.Add(pokeballs);
+                for (int i = 0; i < 300; i++)
+                {
+                    PokeballList.Add(pokeballs);
+                }
             }
+
         }
 
     }

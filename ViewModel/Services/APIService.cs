@@ -49,8 +49,9 @@ namespace Pokémon.Model
 
 
         /*PROPERTIES*/
-        public string JsonErrorLog { get => _jsonErrorLogFilePath; set => _jsonErrorLogFilePath = value; }
         public string JsonPlayerDataFilePath { get => _jsonPlayerDataFilePath; set => _jsonPlayerDataFilePath = value; }
+        public string JsonPokeDataFilePath { get => _jsonPokeDataFilePath; set => _jsonPokeDataFilePath = value; }
+        public string JsonErrorLog { get => _jsonErrorLogFilePath; set => _jsonErrorLogFilePath = value; }
 
 
 
@@ -113,7 +114,6 @@ namespace Pokémon.Model
         //  API CALL
         public HttpResponseMessage APICall(string strEndpoint, string strInputSearchbar)
         {
-
             // Async (wait for server response)
             HttpResponseMessage response = _httpClient.GetAsync(strEndpoint + "/" + strInputSearchbar).Result;
 

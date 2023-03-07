@@ -81,10 +81,12 @@ namespace Pokémon.ViewModel
             _pokemon = new Pokemon();
             _pokemonSpecies = new PokemonSpecies();
             _pokedex = new Pokedex();
-            LoadPokemonFromAPI("https://pokeapi.co/api/v2/pokemon/");
+            LoadPokedex("https://pokeapi.co/api/v2/pokemon/");
             _player = new Player();
             LoadPokeballs();
             LoadPlayerPokemonList();
+            _PokeballTimer = new DispatcherTimer();
+
 
             _searchCommand = new RelayCommand(new Action<object>(SearchPokemon));
             _randomSearchCommand = new RelayCommand(new Action<object>(RandomSearchPokemon));
@@ -124,13 +126,12 @@ namespace Pokémon.ViewModel
                 OnPropertyChanged("PokemonCaughtCount");
             }
         }
-
         public PokemonSpecies PokemonSpecies 
         { 
             get => _pokemonSpecies; 
             set => _pokemonSpecies = value; 
         }
-        public Pokedex PokedexMain 
+        public Pokedex? PokedexMain 
         { 
             get => _pokedex;
             set 
@@ -175,7 +176,7 @@ namespace Pokémon.ViewModel
                 OnPropertyChanged("PlayerPokeballList");
             }
         }
-        public ItemInfo PlayerPokeball 
+        public ItemInfo? PlayerPokeball 
         {
             get => _player.Pokeball;
             set
@@ -184,7 +185,7 @@ namespace Pokémon.ViewModel
                 OnPropertyChanged("PlayerPokeballs");
             }
         }
-        public ImageSource PokeballSprite
+        public ImageSource? PokeballSprite
         {
             get => _player.Pokeball.sprites.@default;
             set
@@ -239,15 +240,18 @@ namespace Pokémon.ViewModel
 
 
         /*EVENTMETHODS*/
-        // event handler method:
+        // changing properties
         public void OnPropertyChanged(string propName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
         }
-
+        // timer event
         private void OnTimerTick(object sender, EventArgs e)
         {
+            // check timer every seconds
             TimeLeft = TimeLeft.Subtract(TimeSpan.FromSeconds(1));
+
+            // Check if timer == 0
             if (TimeLeft <= TimeSpan.Zero)
             {
                 _PokeballTimer.Stop();
@@ -279,22 +283,16 @@ namespace Pokémon.ViewModel
                     PokemonSpecies = pokemonSpecies;
                     Pokemon = pokemon;
                 }
-                else { MessageBox.Show("Generation I only (1-151)"); }
+                else 
+                { 
+                    userMessage("Generation I only (1-151)");
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("An error occurred while searching for the pokémon...");    // msg 2 user
-
-                //make object from error
-                ErrorLogService error = new ErrorLogService()
-                {
-                    TimeStamp = DateTime.Now,
-                    ErrorMsg = ex.Message,
-                    Stacktrace = ex.StackTrace
-                };
-
-                _errorLogServiceList.Add(error);    // add to error list
-                _apiService.AddToJson(_errorLogServiceList, _apiService.JsonErrorLog);  // add to json file
+                //log + msg 2 user
+                ExceptionLog(ex);                // error log
+                userMessage("An error occurred while searching for the pokémon...");   // msg 2 user
             }
 
         }
@@ -331,20 +329,21 @@ namespace Pokémon.ViewModel
                 if (_hasCaughtPokemon)
                 {
                     Player.CatchPokemon(pokemon);                   // add pokemon to player pokemon list
-                    MessageBox.Show("Caught " + pokemon.name);      // msg 2 user
                     SavePlayerPokemonList();
                     Pokemon = null;                                 // reset gui
+                    
+                    userMessage("Caught " + pokemon.name);      // msg 2 user
                 }
 
-                else { 
-                    MessageBox.Show("you have " + Player.PokeballList.Count + " left");
+                else {
+                    userMessage("you have " + Player.PokeballList.Count + " left");
                 }
             }
 
             else
             {
                 SetPokeballTimer();
-                MessageBox.Show("you have " + Player.PokeballList.Count + " left");
+                userMessage("you have " + Player.PokeballList.Count + " left");
             }
 
         }
@@ -371,12 +370,28 @@ namespace Pokémon.ViewModel
 
         }
 
-        // load pokeballs   // unfinished
+        // load pokeballs   
         public void LoadPokeballs()              
         {
-            _response = _apiService.APICall("item/4", "");            // pokemons oproepen
-            PlayerPokeball = _apiService.ConvertAPIResponse<ItemData.ItemInfo>(_response);     // deserialize pokemon list
-            Player.RefillPokeballList(PlayerPokeball);             // refill pokeballs
+            try
+            {
+                _response = _apiService.APICall("item/4", "");            // pokemons oproepen
+                PlayerPokeball = _apiService.ConvertAPIResponse<ItemData.ItemInfo>(_response);     // deserialize pokemon list
+                Player.RefillPokeballList(PlayerPokeball);             // refill pokeballs
+            }
+            catch (HttpRequestException)
+            {
+                // Handle exception for no internet connection
+                userMessage("Sorry there seems to be a problem with the internet...");
+                // Exit program
+                Environment.Exit(0);
+            }
+            catch (Exception ex)
+            {
+                //log + msg 2 user
+                ExceptionLog(ex);                // error log
+                userMessage("An error occurred while Loading the pokéballs...");   // msg 2 user
+            }
         }
 
         // set pokeballs timer                          // TO DO --> zet op 5 min
@@ -384,13 +399,10 @@ namespace Pokémon.ViewModel
         {
             if (!_isActiveTimer)
             {
-                _PokeballTimer = new DispatcherTimer();
 
-                _PokeballTimer.Interval = TimeSpan.FromSeconds(1);
-                _PokeballTimer.Tick += OnTimerTick;     // activate event method
-
-                _timeLeft = TimeSpan.FromSeconds(60);
-
+                _PokeballTimer.Interval = TimeSpan.FromSeconds(1);  // set interval @ 1 sec
+                _PokeballTimer.Tick += OnTimerTick;                 // fire event
+                _timeLeft = TimeSpan.FromSeconds(60);               // set endtime
                 _PokeballTimer.Start();                // start timer
 
                 _isActiveTimer = true;                // set timer bool active
@@ -400,15 +412,29 @@ namespace Pokémon.ViewModel
         #endregion
 
 
-
         #region pokedex
         // Load pokemon list @ POKEDEX
-        public async Task LoadPokemonFromAPI(string endpoint)
+        public async Task LoadPokedex(string endpoint)
         {
-             _response = _apiService.APICall(endpoint, "");            // pokemons oproepen
-            PokedexMain = _apiService.ConvertAPIResponse<Pokedex>(_response);            // deserialize pokemon list
-            AddPokemonToPokedex(PokedexMain);  // add pokemon to pokedexLoaded list (pokedex class)
+            try
+            {
+                _response = _apiService.APICall(endpoint, "");                                  // pokemons oproepen
+
+
+                    PokedexMain = _apiService.ConvertAPIResponse<Pokedex>(_response);           // deserialize pokemon list
+                    _apiService.WriteToJson(PokedexMain, _apiService.JsonPokeDataFilePath);     // write pokedata to json
+                    AddPokemonToPokedex(PokedexMain);                                           // add pokemon to pokedexLoaded list (pokedex class)
+                
+
+            }
+            catch (Exception ex)
+            {
+                //log + msg 2 user
+                ExceptionLog(ex);                // error log
+                userMessage("An error occurred while Loading the pokédex...");   // msg 2 user
+            }                                      
         }
+
 
         // extract every pokemon from the pokedex(data)
         public async Task AddPokemonToPokedex(Pokedex pokedex) 
@@ -435,7 +461,7 @@ namespace Pokémon.ViewModel
             if (commandParameter != null)
             {
                 // load pokemon from pokedex.next
-                LoadPokemonFromAPI(commandParameter.ToString());
+                LoadPokedex(commandParameter.ToString());
 
                 //property change
                 OnPropertyChanged("PokedexLoaded");
@@ -448,8 +474,17 @@ namespace Pokémon.ViewModel
         // Load player data
         public void LoadPlayerPokemonList() 
         {
-            string jsonPlayerData = _apiService.ReadFromJson(_apiService.JsonPlayerDataFilePath);
-            _player.PlayerPokemonList = JsonConvert.DeserializeObject<ObservableCollection<Pokemon>>(jsonPlayerData);
+            try
+            {
+                string jsonPlayerData = _apiService.ReadFromJson(_apiService.JsonPlayerDataFilePath);
+                _player.PlayerPokemonList = JsonConvert.DeserializeObject<ObservableCollection<Pokemon>>(jsonPlayerData);
+            }
+            catch (Exception ex)
+            {
+                //log + msg 2 user
+                ExceptionLog(ex);                // error log
+                userMessage("An error occurred while Loading the player's pokemon list...");   // msg 2 user
+            }
         }
 
         // Save player data
@@ -464,6 +499,28 @@ namespace Pokémon.ViewModel
             _apiService.ResetJson();                    // reset json file
             LoadPlayerPokemonList();                    // reset pokemon list
             OnPropertyChanged("PlayerPokemonList");     
+        }
+        #endregion
+
+        #region ExceptionHandling
+        // throw exception message
+        private void ExceptionLog(Exception ex) 
+        {
+            //make object from error
+            ErrorLogService error = new ErrorLogService()
+            {
+                TimeStamp = DateTime.Now,
+                ErrorMsg = ex.Message,
+                Stacktrace = ex.StackTrace
+            };
+
+            _errorLogServiceList.Add(error);                                                            // add to error list
+            _apiService.AddToJson(_errorLogServiceList, _apiService.JsonErrorLog);                     // add to json file
+        }
+
+        private void userMessage(string ExceptionMsg) 
+        {
+            MessageBox.Show(ExceptionMsg);          // msg 2 user
         }
         #endregion
     }
