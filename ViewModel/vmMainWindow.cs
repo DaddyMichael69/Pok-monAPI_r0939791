@@ -27,11 +27,13 @@ using Pokémon.ViewModel.Services;
 
 ////
 /// TO DO:      -- foutafhandeling
+/// 
 ///             -- pokedex --> show how many times a pokemon 's been caught
 ///             --         --> json file saving player data
+///             
 ///             -- Show amount of pokeballs
 ///             -- timer   --> @ 5 min 
-///                        --> start after throw 3
+///             -- pokeballs     --> start after throw 3 pokeballs
 
 
 namespace Pokémon.ViewModel
@@ -56,9 +58,8 @@ namespace Pokémon.ViewModel
         private Player _player;
         private DispatcherTimer _PokeballTimer;
         private TimeSpan _timeLeft;
-
-                                                            // bools
-        private bool _hasPokeballs;
+                                                            
+        private bool _hasPokeballs;                         // bools
         private bool _isActiveTimer;
         private bool _hasCaughtPokemon;
 

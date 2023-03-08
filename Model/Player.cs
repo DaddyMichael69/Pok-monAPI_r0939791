@@ -78,7 +78,7 @@ namespace Pokémon.Model
         {
             if (pokeballs != null)
             {
-                for (int i = 0; i < 300; i++)
+                for (int i = 0; i < 3; i++)
                 {
                     PokeballList.Add(pokeballs);
                 }

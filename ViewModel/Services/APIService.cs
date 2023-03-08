@@ -153,7 +153,7 @@ namespace Pokémon.Model
         //  API CONVERTER
         public T ConvertAPIResponse<T>(HttpResponseMessage response) where T : class
         {
-            if (response != null)
+            if (response.IsSuccessStatusCode && response != null)
             {
                 // respons uit Async als string omzetten
                 var jsonString = response.Content.ReadAsStringAsync().Result;
