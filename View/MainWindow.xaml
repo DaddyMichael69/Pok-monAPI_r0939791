@@ -53,7 +53,6 @@
                         </StackPanel>
 
                     </GroupBox>
-                    <Label x:Name="lblTimer" Content="" HorizontalAlignment="Left" Margin="123,10,0,0" Grid.Row="1" VerticalAlignment="Top" Width="68"/>
                     <GroupBox Header="Browse" Margin="10,0,0,0">
                         <Grid>
                             <TextBox x:Name="txtSearch" HorizontalAlignment="Left" Margin="26,66,0,0" TextWrapping="Wrap" Text="Search a pokémon..." VerticalAlignment="Top" Width="136" Height="18"/>
@@ -63,8 +62,10 @@
                     </GroupBox>
                     <GroupBox Header="Player" Margin="10,217,0,10" Grid.RowSpan="2">
                         <Grid>
-                            <TextBox x:Name="txtTestTimer" Text="{Binding TimeLeft}"  HorizontalAlignment="Left" Margin="56,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" IsEnabled="False"/>
-                            <Label Content="Timer" HorizontalAlignment="Left" Margin="10,6,0,0" VerticalAlignment="Top"/>
+                            <TextBox x:Name="txtTimer" Text="{Binding TimeLeft}"  HorizontalAlignment="Left" Margin="73,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="103" IsEnabled="False"/>
+                            <Label x:Name="lblTimer1" Content="Timer" HorizontalAlignment="Left" Margin="10,6,0,0" VerticalAlignment="Top"/>
+                            <Label x:Name="lblPokeballs" Content="Pokeballs " HorizontalAlignment="Left" Margin="10,37,0,0" VerticalAlignment="Top"/>
+                            <TextBox x:Name="txtPokeballs" Text="{Binding PokeballCount, Mode=OneWay}"  HorizontalAlignment="Left" Margin="73,41,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="103" IsEnabled="False"/>
                         </Grid>
                     </GroupBox>
                 </Grid>
@@ -75,26 +76,25 @@
                         <ColumnDefinition/>
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
-                    <GroupBox Grid.Column="1" Header="Player Pokemonlist">
-                        <Grid>
+                    <GroupBox x:Name="grpPokemonList" Grid.Column="1" Header="Player Pokemonlist">
+                        <Grid x:Name="grdPokemonList">
                             <ListView x:Name="lstPlayerPokedex" ItemsSource="{Binding PlayerPokemonList}"
                                       SelectedItem="{Binding SelectedPokemon}" Margin="44,14,43,112">
                                 <ListView.View>
                                     <GridView>
                                         <GridViewColumn DisplayMemberBinding="{Binding id}"/>
                                         <GridViewColumn DisplayMemberBinding="{Binding name}"/>
-                                        <GridViewColumn DisplayMemberBinding="{Binding CaughtCount}"/>
                                     </GridView>
                                 </ListView.View>
                             </ListView>
-                            <Button x:Name="btnClearSaveData" Command="{Binding ClearSaveDataCommand}" Content="Clear savedata" HorizontalAlignment="Center" Margin="0,344,0,0" VerticalAlignment="Top" Width="298"/>
+                            <Button x:Name="btnClearSaveData" Command="{Binding ClearSaveDataCommand}" Content="Clear savedata" Margin="0,323,0,0" Width="298" Height="41"/>
                             <Label x:Name="lblCaughtInfo" Content="#Caught:" HorizontalAlignment="Left" Margin="121,292,0,0" VerticalAlignment="Top"/>
                             <Label x:Name="lblCaughtCount" Content="{Binding SelectedPokemon.CaughtCount}" HorizontalAlignment="Left" Margin="207,292,0,0" VerticalAlignment="Top"/>
                         </Grid>
                     </GroupBox>
-                    <GroupBox Header="Pokédex">
-                        <Grid>
-                            <DataGrid x:Name="dtgInGamePokédex" ItemsSource="{Binding PokedexLoaded}" AutoGenerateColumns="False" Margin="45,18,58,64">
+                    <GroupBox x:Name="grpPokedex" Header="Pokédex">
+                        <Grid x:Name="grdPokedex">
+                            <DataGrid x:Name="dtgInGamePokédex" ItemsSource="{Binding PokedexLoaded}" AutoGenerateColumns="False" Margin="45,18,58,114">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="id" Binding="{Binding id}" />
                                     <DataGridTextColumn Header="Name" Binding="{Binding name}" />
@@ -107,8 +107,8 @@
                                     </DataGridTemplateColumn>
                                 </DataGrid.Columns>
                             </DataGrid>
-                            <Button x:Name="btnNext" Command="{Binding BrowsePokedex}" CommandParameter="{Binding PokedexMain.Next}" Content="Next" HorizontalAlignment="Left" Margin="265,331,0,0" VerticalAlignment="Top" Height="34" Width="62"/>
-                            <Button x:Name="btnPrevious" Command="{Binding BrowsePokedex}" CommandParameter="{Binding PokedexMain.Previous}"  Content="Previous" HorizontalAlignment="Left" Margin="45,331,0,0" VerticalAlignment="Top" Height="34" Width="62"/>
+                            <Button x:Name="btnNext" Command="{Binding BrowsePokedex}" CommandParameter="{Binding PokedexMain.Next}" Content="Next" Margin="199,303,124,46" Height="34" Width="62"/>
+                            <Button x:Name="btnPrevious" Command="{Binding BrowsePokedex}" CommandParameter="{Binding PokedexMain.Previous}"  Content="Previous" Margin="93,303,230,46" Height="34" Width="62"/>
                         </Grid>
                     </GroupBox>
                 </Grid>

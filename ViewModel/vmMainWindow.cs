@@ -24,26 +24,21 @@ using System.Windows.Threading;
 using System.Timers;
 using Newtonsoft.Json.Linq;
 using Pokémon.ViewModel.Services;
+using System.IO;
 
 ////
-/// TO DO:      -- foutafhandeling
-/// 
-///             -- pokedex --> show how many times a pokemon 's been caught
-///             --         --> json file saving player data
+/// TO DO:      -- caught count propertychanged probleem (x aantal keer klikken om propertie correct te kunnen zien)
+///             -- pokeballs = plots 6 ?? 
+///             -- set timer @ 300 ms
 ///             
-///             -- Show amount of pokeballs
-///             -- timer   --> @ 5 min 
-///             -- pokeballs     --> start after throw 3 pokeballs
+///             
 
 
 namespace Pokémon.ViewModel
 {
-    public class vmMainWindow : INotifyPropertyChanged
+    public class vmMainWindow : vmBase
     {
-        /*EVENT HANDLERS*/
-        public event PropertyChangedEventHandler PropertyChanged;
-
-
+ 
         /*FIELD*/
         private Uri _baseUri;                               // API
         private HttpResponseMessage _response;
@@ -69,8 +64,7 @@ namespace Pokémon.ViewModel
         private ICommand _catchCommand;
         private ICommand _clearSaveDataCommand;
 
-
-        
+               
 
         /*CONSTRUCTOR*/
         public vmMainWindow(Uri parBaseUri)
@@ -88,7 +82,6 @@ namespace Pokémon.ViewModel
             LoadPlayerPokemonList();
             _PokeballTimer = new DispatcherTimer();
 
-
             _searchCommand = new RelayCommand(new Action<object>(SearchPokemon));
             _randomSearchCommand = new RelayCommand(new Action<object>(RandomSearchPokemon));
             _browsePokedex = new RelayCommand(new Action<object>(NextPreviousPokedex));
@@ -96,7 +89,6 @@ namespace Pokémon.ViewModel
             _clearSaveDataCommand = new RelayCommand(new Action<object>(ErasePlayerPokemonList));
 
         }
-
 
         /*PROPERTIES*/
         public Pokemon Pokemon
@@ -109,21 +101,23 @@ namespace Pokémon.ViewModel
         public Pokemon SelectedPokemon 
         {
             get { return _selectedPokemon; }
-            set {
+            set 
+            {
                 if (_selectedPokemon != value)
                 {
                     _selectedPokemon = value;
                     OnPropertyChanged("SelectedPokemon");
+                    CountPokemon(_selectedPokemon);
                     OnPropertyChanged("PokemonCaughtCount");
                 }
             }
         }
         public int PokemonCaughtCount
         {
-            get => _selectedPokemon.CaughtCount;
-            set {
-                _player.CountPokemon(SelectedPokemon);
-                _selectedPokemon.CaughtCount = value;
+            get => SelectedPokemon.CaughtCount;
+            set
+            {
+                SelectedPokemon.CaughtCount = value;
                 OnPropertyChanged("PokemonCaughtCount");
             }
         }
@@ -195,6 +189,14 @@ namespace Pokémon.ViewModel
                 OnPropertyChanged("PokeballSprite");
             }
         }
+        public int PokeballCount
+        {
+            get
+            {
+                return _player.PokeballList.Count;
+            }
+
+        }
         public DispatcherTimer PokeballTimer
         {
             get => _PokeballTimer;
@@ -241,29 +243,31 @@ namespace Pokémon.ViewModel
 
 
         /*EVENTMETHODS*/
-        // changing properties
-        public void OnPropertyChanged(string propName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
-        }
         // timer event
         private void OnTimerTick(object sender, EventArgs e)
         {
-            // check timer every seconds
+            // check timer every seconds            
             TimeLeft = TimeLeft.Subtract(TimeSpan.FromSeconds(1));
 
-            // Check if timer == 0
-            if (TimeLeft <= TimeSpan.Zero)
+            // check if timer <= 0
+            if (TimeLeft < TimeSpan.Zero)
             {
+                TimeLeft = TimeSpan.Zero;
                 _PokeballTimer.Stop();
                 _isActiveTimer = false;
+            }
+
+            // Check if timer == 0
+            if (TimeLeft == TimeSpan.Zero)
+            {
                 LoadPokeballs();
             }
+
+
         }
 
 
-
-        /*WORKMETHODS*/
+        /*METHODS*/
         #region searchtab
         // Search pokemon @ API
         public void SearchPokemon(object commandParameter)
@@ -315,6 +319,7 @@ namespace Pokémon.ViewModel
             {
                 //throw a pokeball
                 Player.DepletePokeBalls();
+                OnPropertyChanged("PokeballCount");
 
                 // receive pokemon from UI
                 Pokemon pokemon = (Pokemon)commandParameter;
@@ -335,29 +340,24 @@ namespace Pokémon.ViewModel
                     
                     userMessage("Caught " + pokemon.name);      // msg 2 user
                 }
-
-                else {
-                    userMessage("you have " + Player.PokeballList.Count + " left");
-                }
             }
-
             else
             {
                 SetPokeballTimer();
-                userMessage("you have " + Player.PokeballList.Count + " left");
+                userMessage("No more balls, starting timer...");
             }
 
         }
 
-        // player vs pokemon catch / toss
+        // player vs cpu toss
         private bool CaptureToss(PokemonSpecies pokemonespecie) 
         {
             // CPU chances
-            int iCaptureRate = ((int)_pokemonSpecies.capture_rate * 100) / 255;  // check pokemon capture rate
+            int iCaptureRate = ((int)_pokemonSpecies.capture_rate * 100) / 255;     // check pokemon capture rate
             
             // Player chances
             Random rndCaptureCounterRate = new Random();
-            int counterCaptureRate = rndCaptureCounterRate.Next(1, 255);
+            int counterCaptureRate = rndCaptureCounterRate.Next(1, 255);            // cpu capture rate
 
             // boolean return
             if (counterCaptureRate < iCaptureRate)
@@ -379,13 +379,15 @@ namespace Pokémon.ViewModel
                 _response = _apiService.APICall("item/4", "");            // pokemons oproepen
                 PlayerPokeball = _apiService.ConvertAPIResponse<ItemData.ItemInfo>(_response);     // deserialize pokemon list
                 Player.RefillPokeballList(PlayerPokeball);             // refill pokeballs
+                OnPropertyChanged("PokeballCount");
+                SaveImage(PlayerPokeball.sprites.@default.ToString(), "pokeballsprite.png");
+
             }
             catch (HttpRequestException)
             {
                 // Handle exception for no internet connection
-                userMessage("Sorry there seems to be a problem with the internet...");
-                // Exit program
-                Environment.Exit(0);
+                userMessage("Sorry there seems to be a problem with the connection...");
+
             }
             catch (Exception ex)
             {
@@ -395,15 +397,16 @@ namespace Pokémon.ViewModel
             }
         }
 
+
+
         // set pokeballs timer                          // TO DO --> zet op 5 min
         public void SetPokeballTimer()
         {
             if (!_isActiveTimer)
             {
-
                 _PokeballTimer.Interval = TimeSpan.FromSeconds(1);  // set interval @ 1 sec
+                _timeLeft = TimeSpan.FromMinutes(5);               // set endtime
                 _PokeballTimer.Tick += OnTimerTick;                 // fire event
-                _timeLeft = TimeSpan.FromSeconds(60);               // set endtime
                 _PokeballTimer.Start();                // start timer
 
                 _isActiveTimer = true;                // set timer bool active
@@ -419,14 +422,10 @@ namespace Pokémon.ViewModel
         {
             try
             {
-                _response = _apiService.APICall(endpoint, "");                                  // pokemons oproepen
-
-
-                    PokedexMain = _apiService.ConvertAPIResponse<Pokedex>(_response);           // deserialize pokemon list
-                    _apiService.WriteToJson(PokedexMain, _apiService.JsonPokeDataFilePath);     // write pokedata to json
-                    AddPokemonToPokedex(PokedexMain);                                           // add pokemon to pokedexLoaded list (pokedex class)
-                
-
+                _response = _apiService.APICall(endpoint, "");                              // pokemons oproepen
+                PokedexMain = _apiService.ConvertAPIResponse<Pokedex>(_response);           // deserialize pokemon list
+                _apiService.WriteToJson(PokedexMain, _apiService.JsonPokeDataFilePath);     // write pokedata to json
+                AddPokemonToPokedex(PokedexMain);                                           // add pokemon to pokedexLoaded list (pokedex class)             
             }
             catch (Exception ex)
             {
@@ -468,6 +467,29 @@ namespace Pokémon.ViewModel
                 OnPropertyChanged("PokedexLoaded");
             }
         }
+
+        public void CountPokemon(Pokemon selectedPokemon)       //laggy (not a good solution, last minute fix...)
+        {
+            int counter = 0;
+
+            // Read the JSON from file
+            string json = File.ReadAllText(_apiService.JsonPlayerDataFilePath);
+
+            // Deserialize the JSON into a list of Pokemon objects
+            List<Pokemon> pokemonList = JsonConvert.DeserializeObject<List<Pokemon>>(json);
+
+            // Search the list for the selected Pokemon and count how many times it appears
+            foreach (Pokemon pokemon in pokemonList)
+            {
+                if (pokemon.id == selectedPokemon.id)
+                {
+                    counter++;
+                }
+            }
+
+            PokemonCaughtCount = counter;
+
+        }
         #endregion
 
 
@@ -501,7 +523,18 @@ namespace Pokémon.ViewModel
             LoadPlayerPokemonList();                    // reset pokemon list
             OnPropertyChanged("PlayerPokemonList");     
         }
+
+        // save images 
+        public void SaveImage(string url, string filepathImage)
+        {
+            if (!File.Exists(filepathImage))
+            {
+                _apiService.SaveImage(url, filepathImage);
+            }
+
+        }
         #endregion
+
 
         #region ExceptionHandling
         // throw exception message

@@ -11,7 +11,5 @@ namespace Pokémon.ViewModel.Services
         public string ErrorMsg { get; set; }
         public string Stacktrace { get; set; }
         public DateTime TimeStamp { get; set; }
-
-
     }
 }

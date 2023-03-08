@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -37,21 +38,6 @@ namespace Pokémon.Model
             PlayerPokemonList.Add(pokemon);     // add pokemon to player pokelist
         }
 
-        // count pokemon
-        public void CountPokemon(Pokemon parPokemon)
-        {
-            foreach (Pokemon pokemon  in PlayerPokemonList)
-            {
-                if (pokemon == parPokemon)
-                {
-                    pokemon.CaughtCount++;
-                }
-                else
-                {
-                    pokemon.CaughtCount = 1;
-                }
-            }
-        }
 
         // check if the player has any pokeballs
         public bool CheckPokeballCount()
@@ -65,7 +51,8 @@ namespace Pokémon.Model
                 return false;
             }
         }
-        
+
+
         //deplete pokéballs
         public void DepletePokeBalls() 
         {
@@ -80,11 +67,18 @@ namespace Pokémon.Model
             {
                 for (int i = 0; i < 3; i++)
                 {
-                    PokeballList.Add(pokeballs);
+                    if (PokeballList.Count < 3)
+                    {
+                        PokeballList.Add(pokeballs);
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
             }
 
-        }
 
+        }
     }
 }

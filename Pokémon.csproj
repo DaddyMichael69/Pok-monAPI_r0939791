@@ -76,6 +76,7 @@
     <Compile Include="ViewModel\Converters\StatObsColToString.cs" />
     <Compile Include="ViewModel\Converters\TypeObsColToString.cs" />
     <Compile Include="ViewModel\Services\ErrorLogService.cs" />
+    <Compile Include="ViewModel\vmBase.cs" />
     <Compile Include="ViewModel\vmMainWindow.cs" />
     <Compile Include="View\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>

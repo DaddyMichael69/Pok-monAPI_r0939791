@@ -111,6 +111,25 @@ namespace Pokémon.Model
             File.WriteAllText(_jsonPlayerDataFilePath, string.Empty);
         }
 
+        public async Task SaveImage(string url, string filepath)
+        {
+            using (var httpClient = new HttpClient())
+            {
+                // get response from httprequest
+                var response = await httpClient.GetAsync(url);
+
+                // response == succes?
+                response.EnsureSuccessStatusCode();
+
+                // read image bytes
+                var imageBytes = await response.Content.ReadAsByteArrayAsync();
+
+                // Save the sprite image to disk
+                File.WriteAllBytes(filepath, imageBytes);
+            }
+        }
+
+
         //  API CALL
         public HttpResponseMessage APICall(string strEndpoint, string strInputSearchbar)
         {
@@ -127,7 +146,7 @@ namespace Pokémon.Model
             }
             else
             {
-                return null;        // eventuele foutmelding meegeven
+                return null;        
             }
 
         }
